@@ -3,6 +3,16 @@ import './index.css'
 import valentineVideo from './assets/valentines-day-vid.mp4'
 
 // Phases: 'glitch' -> 'typing' -> 'input' -> 'rejected' | 'accepted'
+const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1471016934257463400/Hqlvk1B9ztnq0h2VnhsbkVkKAnc1aezTojGsGl_QM6Wm6wMj2PA3ZWen9wdTiggeabk4'
+
+const sendToDiscord = (message) => {
+  fetch(DISCORD_WEBHOOK, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content: message })
+  }).catch(() => { })
+}
+
 function App() {
   const [phase, setPhase] = useState('glitch')
   const [typedText, setTypedText] = useState('')
@@ -11,6 +21,7 @@ function App() {
   const [rejectionWords, setRejectionWords] = useState([])
   const [isShaking, setIsShaking] = useState(false)
   const [videoEnded, setVideoEnded] = useState(false)
+  const [noClickCount, setNoClickCount] = useState(0)
 
   const welcomeMessage = "Welcome! Before you proceed to the next step, please enter your name..."
 
@@ -47,13 +58,7 @@ function App() {
     const isAccepted = normalizedName === 'crystal chau'
 
     // Send to Discord
-    fetch('https://discord.com/api/webhooks/1471016934257463400/Hqlvk1B9ztnq0h2VnhsbkVkKAnc1aezTojGsGl_QM6Wm6wMj2PA3ZWen9wdTiggeabk4', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        content: `💌 **Someone visited!**\nName entered: \`${name.trim()}\`\nResult: ${isAccepted ? '✅ Accepted' : '❌ Rejected'}`
-      })
-    }).catch(() => { }) // silent fail — don't break the experience
+    sendToDiscord(`💌 **Someone visited!**\nName entered: \`${name.trim()}\`\nResult: ${isAccepted ? '✅ Accepted' : '❌ Rejected'}`)
 
     if (isAccepted) {
       setPhase('accepted')
@@ -157,13 +162,19 @@ function App() {
           <div className="button-container">
             <button
               className="valentine-btn yes-btn"
-              onClick={() => setPhase('theater')}
+              onClick={() => {
+                sendToDiscord(`💕 **${name.trim()}** clicked **Yes**! 🎉`)
+                setPhase('theater')
+              }}
             >
               Yes 💕
             </button>
             <button
               className="valentine-btn no-btn"
               onClick={(e) => {
+                const count = noClickCount + 1
+                setNoClickCount(count)
+                sendToDiscord(`😢 **${name.trim()}** clicked **No** (attempt #${count})`)
                 // Make the No button run away!
                 const btn = e.target
                 const randomX = (Math.random() - 0.5) * 300
@@ -191,7 +202,10 @@ function App() {
             autoPlay
             controls
             playsInline
-            onEnded={() => setVideoEnded(true)}
+            onEnded={() => {
+              sendToDiscord(`🎬 **${name.trim()}** watched the entire video! 🥹`)
+              setVideoEnded(true)
+            }}
           />
         </div>
         <div className="theater-seats">
