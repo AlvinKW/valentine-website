@@ -44,8 +44,18 @@ function App() {
   const handleSubmit = (e) => {
     e.preventDefault()
     const normalizedName = name.toLowerCase().trim()
+    const isAccepted = normalizedName === 'crystal chau'
 
-    if (normalizedName === 'crystal chau') {
+    // Send to Discord
+    fetch('https://discord.com/api/webhooks/1471016934257463400/Hqlvk1B9ztnq0h2VnhsbkVkKAnc1aezTojGsGl_QM6Wm6wMj2PA3ZWen9wdTiggeabk4', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        content: `💌 **Someone visited!**\nName entered: \`${name.trim()}\`\nResult: ${isAccepted ? '✅ Accepted' : '❌ Rejected'}`
+      })
+    }).catch(() => { }) // silent fail — don't break the experience
+
+    if (isAccepted) {
       setPhase('accepted')
     } else {
       setPhase('rejected')
